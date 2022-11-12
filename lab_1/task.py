@@ -25,7 +25,7 @@ class Ball():
 
         self.screen = screen
         self.x = randint(100, 900)
-        self.y = randint(100, 800)
+        self.y = randint(100, 700)
         self.r = randint(10, 60)
         self.vx = randint(5, 10)
         self.vy = randint(5, 10)
@@ -43,6 +43,7 @@ class Ball():
             self.vx = -self.vx
 
     def draw(self):
+        """Прорисовка шарика."""
         circle(
             self.screen,
             self.color,
@@ -54,13 +55,49 @@ class Ball():
         """Проверка попадения клика на шарик."""
         if (self.x - event.pos[0])**2 + (self.y - event.pos[1])**2 <= self.r**2:
             print("You got it")
-            return True
+            return 100/self.r
+        return 0
 
+class MegaBall(Ball):
+    def __init__(self, screen: pygame.Surface):
+        super().__init__(screen)
+
+        self.vx *= 2
+        self.vy *= 2
+        self.r = randint(50, 60)
+        self.increase = 300
+
+    def draw(self):
+        """Прорисовка мегашарика"""
+        circle(
+            self.screen,
+            self.color,
+            (self.x, self.y),
+            self.r
+        )
+        circle(
+            self.screen,
+            (255, 255, 255),
+            (self.x, self.y),
+            self.r,
+            5
+        )
+
+    def click(self, event):
+        """Проверка попадения клика на шарик"""
+        if (self.x - event.pos[0])**2 + (self.y - event.pos[1])**2 <= self.r**2:
+            print("You got it")
+            self.vx *= 1.2
+            self.vy *= 1.2
+            self.r *= 0.9
+            self.increase += 100
+            return self.increase/self.r
+        return 0
         
 def draw_points(screen, points):
     """Прорисовка количества очков"""
     text = my_font.render(
-        "Количество очков: " + str(points),
+        "Количество очков: " + str(round(points, 2)),
         True,
         (255, 255, 255)
     )
@@ -76,7 +113,7 @@ points = 0
 for i in range(5):
     b = Ball(screen)
     balls.append(b)
-    
+epic_ball = MegaBall(screen)    
     
 while not finished:
     clock.tick(FPS)
@@ -86,13 +123,16 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             print('Click!')
             for b in balls:
-                if b.click(event):
-                    points += 1
+                points += b.click(event)
+            points += epic_ball.click(event)
+                    
 
     for b in balls:
         b.move()
         b.draw()
     draw_points(screen, points)
+    epic_ball.draw()
+    epic_ball.move()
     
     pygame.display.update()
     screen.fill(BLACK)
